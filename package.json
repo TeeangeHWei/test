@@ -1,0 +1,27 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "yamimealTest": "./node_modules/.bin/wdio ./wdio.ios.conf.js --mochaOpts.grep 'login_case'",
+    "checkout": "./node_modules/.bin/wdio ./wdio.ios.conf.js --mochaOpts.grep '结账页面'"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@wdio/appium-service": "^6.11.0",
+    "@wdio/cli": "^6.11.3",
+    "@wdio/local-runner": "^6.11.3",
+    "@wdio/mocha-framework": "^6.11.0",
+    "@wdio/spec-reporter": "^6.11.0",
+    "@wdio/sync": "^6.11.0",
+    "appium": "^1.20.0",
+    "chai": "^4.0.2",
+    "chromedriver": "^87.0.5",
+    "wdio-chromedriver-service": "^6.0.4",
+    "wdio-teamcity-reporter": "^2.3.0",
+    "webdriverio": "^6.7.2"
+  }
+}
