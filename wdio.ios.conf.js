@@ -1,4 +1,4 @@
-const teamcity = require('wdio-teamcity-reporter').default
+const teamcity = require('@danielgallo/wdio-teamcity-reporter').default
 exports.config = {
     //
     // ====================
@@ -126,6 +126,7 @@ exports.config = {
     // The only one supported by default is 'dot'
     // see also: https://webdriver.io/docs/dot-reporter
     reporters: [[teamcity, {
+        screenshotPath:'temp/screenshots',
         captureStandardOutput: false,
         flowId: true,
         message: '[title]',
