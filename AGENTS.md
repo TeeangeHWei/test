@@ -10,7 +10,7 @@
 - bash tools/agent.sh checks：静态检查、自动测试和构建。
 - bash tools/agent.sh smoke：一条自带断言的核心流程；CI 中自行管理依赖服务和收尾。
 
-四个入口默认尚未配置，退出 2。先明确实际命令；不要用 echo、true 或空函数代替真实验证。
+四个入口需为真实命令，不能用 echo/true 代替；失败必须非零退出。
 setup 不能依赖仅在当前 shell 中生效的临时 export。start 的应用进程不放进 Cloud Build install。
 Cloud 与 CI 的工具链版本和测试配置需一致，凭据通过各自环境显式提供。
 
@@ -43,3 +43,18 @@ CI 默认可能测试 PR 的合并提交；记录 CI 对应的 commit/run，区�
 
 未配置、无法运行、无断言、证据缺失均不等于通过。
 审查通过后交由人最终合并；本文件不授予绕过远程分支保护的权限。
+
+## 本仓库特定说明
+
+- Node 版本：固定在 Node 20 LTS（CI 使用 `actions/setup-node@v4` 安装 20.x）。本地允许 Node ≥20 运行。
+- 入口命令：
+  - `bash tools/agent.sh setup`：校验 Node 版本（≥20），不安装历史 Appium 依赖。
+  - `bash tools/agent.sh checks`：运行基于 `node:test` 的静态检查与 Gestures 回归测试。
+  - `bash tools/agent.sh smoke`：组件级（非 iOS E2E）Gestures 调用链联通性验证（stubbed driver/element）。
+  - `bash tools/agent.sh start`：本任务无常驻应用，命令以“Not applicable”说明并以退出码 3 结束。
+- iOS E2E 现实约束：该仓库原有 WDIO/Appium iOS 测试需要 macOS/Xcode、指定模拟器和被测 App。云端与 CI 环境不具备，均明确标注“未执行 / 不适用”，不冒充通过。
+- Bug 修复：`commons/Gestures.js` 中 `checkIfDisplayedWithScrollDown` 纠正了滚动预算越界与成功后误报错问题；回归测试覆盖：
+  - 已可见；零次预算；
+  - 最后允许的一次滚动后找到；
+  - 始终找不到且滚动次数不超过预算；
+  - “第 3 次才可见而预算 2”应在 2 次后失败且不继续滚动。
