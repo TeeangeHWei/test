@@ -37,7 +37,7 @@ agent_checks() {
   echo '[checks] Node test: regression tests'
   # 运行 node:test（需要 Node >=20）
   if [ -d tests ]; then
-    node --test tests/**/*.test.js
+    node --test 'tests/**/*.test.js'
   else
     echo '[checks] No tests directory found' >&2
     return 1
