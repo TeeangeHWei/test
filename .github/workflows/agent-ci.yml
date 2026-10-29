@@ -17,6 +17,10 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Use Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
       # 按技术栈在这里补齐固定版本的工具链，或改用已准备的 runner。
       # 需要测试凭据时，在相关步骤显式映射 GitHub 的测试环境 Secrets。
       - name: Prepare toolchain and dependencies
