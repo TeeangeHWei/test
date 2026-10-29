@@ -11,20 +11,48 @@ agent_not_configured() {
 
 agent_setup() {
   # 指定工具链可用性、锁定依赖安装、代码生成；需可重复执行。
-  agent_not_configured setup
+  echo '[setup] Verifying Node.js toolchain (requires Node >=20, CI pins 20.x)...'
+  if ! command -v node >/dev/null 2>&1; then
+    echo '[setup] ERROR: Node.js is not installed or not on PATH.' >&2
+    return 1
+  fi
+  node -v
+  # 允许本地更高版本，但最低要求为 20
+  NODE_MAJOR="$(node -p 'process.versions.node.split(\".\")[0]')"
+  if [ "${NODE_MAJOR}" -lt 20 ]; then
+    echo '[setup] ERROR: Node <20 detected. Please use Node 20 LTS.' >&2
+    return 1
+  fi
+  echo '[setup] Nothing to install for this task (no Appium/iOS env required).'
+  echo '[setup] Done.'
 }
 
 agent_start() {
   # 前台应用启动命令；CI smoke 不依赖此进程事先存在。
-  agent_not_configured start
+  echo '[start] No long-running app for this repository task.'
+  echo '[start] iOS E2E requires macOS/Xcode and real app build; not applicable in CI.'
+  echo '[start] Exiting with code 3 to indicate N/A.'
+  return 3
 }
 
 agent_checks() {
   # 分行填写静态检查、相关测试、构建命令。不要吞掉非零退出。
-  agent_not_configured checks
+  echo '[checks] Static checks'
+  # 极简静态检查：核心文件存在且可加载
+  test -f commons/Gestures.js
+  node -e "require('./commons/Gestures.js')"
+  echo '[checks] Node test: regression tests'
+  # 运行 node:test（需要 Node >=20）
+  if [ -d tests ]; then
+    node --test tests
+  else
+    echo '[checks] No tests directory found' >&2
+    return 1
+  fi
 }
 
 agent_smoke() {
   # 自带断言的核心流程；在 CI 中启动/连接测试服务并收尾。
-  agent_not_configured smoke
+  echo '[smoke] Component-level Gestures verification (stubbed driver/element).'
+  node scripts/gestures-smoke.js
 }
