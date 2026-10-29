@@ -1,0 +1,60 @@
+# Repository engineering workflow
+
+将本文件内容合并进已有 AGENTS.md；以真实项目约定和用户当前任务为准。
+
+## Environment contract
+
+测试入口统一保存在 tools/agent-commands.sh：
+- bash tools/agent.sh setup：安装指定工具链/锁定依赖；可重复执行。
+- bash tools/agent.sh start：在前台启动测试应用；在独立终端保持运行。
+- bash tools/agent.sh checks：静态检查、自动测试和构建。
+- bash tools/agent.sh smoke：一条自带断言的核心流程；CI 中自行管理依赖服务和收尾。
+
+四个入口需为真实命令，不能用 echo/true 代替；失败必须非零退出。
+setup 不能依赖仅在当前 shell 中生效的临时 export。start 的应用进程不放进 Cloud Build install。
+Cloud 与 CI 的工具链版本和测试配置需一致，凭据通过各自环境显式提供。
+
+项目维护者需补充的环境信息：
+- 工具链与包管理器版本、安装来源。
+- 应用测试地址、端口及就绪条件。
+- 测试账号所需的环境变量名与测试数据准备/重置方法。
+- 无法在当前环境运行的部分及所需执行环境。
+
+## Skills
+
+提交到仓库的 .cursor/skills/ 包含：
+- implement-change：实现明确任务。
+- verify-change：执行验证，返回当前版本的证据。
+- review-change：在新的会话审查当前 PR，不修改实现。
+
+## Delivery contract
+
+在授权任务分支工作；保留现有改动和项目惯例。
+不要为消除失败而跳过断言、删除测试、修改 CI/审查门禁或隐藏发现。
+如果任务本身就是修改这些配置，按用户明确范围处理并说明影响。
+
+行为变更补充有意义的回归验证；纯文案等变更选择相称验证，不为凑数量新增测试。
+提交 PR 时说明需求、变更、测试命令与结果、提交 SHA、证据链接和未验证项。
+UI 任务展示关键交互和最终状态；API 任务展示断言和脱敏结果。
+本地证据路径尚未共享时要说明，不能伪装为别人可访问的链接。
+
+CI 默认可能测试 PR 的合并提交；记录 CI 对应的 commit/run，区分它与开发分支提交。
+每次推送之后，重新核对现有验证/审查是否仍适用于当前 PR，不能复用失效结论。
+
+未配置、无法运行、无断言、证据缺失均不等于通过。
+审查通过后交由人最终合并；本文件不授予绕过远程分支保护的权限。
+
+## 本仓库特定说明
+
+- Node 版本：固定在 Node 22.23.4（CI 使用 `actions/setup-node@v4` 安装 22.23.4）。本地需使用 v22.23.4 以一致验证。
+- 入口命令：
+  - `bash tools/agent.sh setup`：校验 Node 版本（必须为 v22.23.4），不安装历史 Appium 依赖。
+  - `bash tools/agent.sh checks`：运行基于 `node:test` 的静态检查与 Gestures 回归测试。
+  - `bash tools/agent.sh smoke`：组件级（非 iOS E2E）Gestures 调用链联通性验证（stubbed driver/element）。
+  - `bash tools/agent.sh start`：本任务无常驻应用，命令以“Not applicable”说明并以退出码 3 结束。
+- iOS E2E 现实约束：该仓库原有 WDIO/Appium iOS 测试需要 macOS/Xcode、指定模拟器和被测 App。云端与 CI 环境不具备，均明确标注“未执行 / 不适用”，不冒充通过。
+- Bug 修复：`commons/Gestures.js` 中 `checkIfDisplayedWithScrollDown` 纠正了“超预算多滚”的问题；回归测试覆盖：
+  - 已可见；零次预算；
+  - 最后允许的一次滚动后找到；
+  - 始终找不到且滚动次数不超过预算；
+  - “第 3 次才可见而预算 2”应在 2 次后失败且不继续滚动。

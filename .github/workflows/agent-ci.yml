@@ -1,0 +1,31 @@
+name: agent-ci
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: agent-verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Use Node.js 22.23.4
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.23.4'
+      # 按技术栈在这里补齐固定版本的工具链，或改用已准备的 runner。
+      # 需要测试凭据时，在相关步骤显式映射 GitHub 的测试环境 Secrets。
+      - name: Prepare toolchain and dependencies
+        run: bash tools/agent.sh setup
+      - name: Checks and build
+        run: bash tools/agent.sh checks
+      - name: Core flow smoke
+        run: bash tools/agent.sh smoke
