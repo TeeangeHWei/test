@@ -46,14 +46,14 @@ CI 默认可能测试 PR 的合并提交；记录 CI 对应的 commit/run，区�
 
 ## 本仓库特定说明
 
-- Node 版本：固定在 Node 20 LTS（CI 使用 `actions/setup-node@v4` 安装 20.x）。本地允许 Node ≥20 运行。
+- Node 版本：固定在 Node 22.23.4（CI 使用 `actions/setup-node@v4` 安装 22.23.4）。本地需使用 v22.23.4 以一致验证。
 - 入口命令：
-  - `bash tools/agent.sh setup`：校验 Node 版本（≥20），不安装历史 Appium 依赖。
+  - `bash tools/agent.sh setup`：校验 Node 版本（必须为 v22.23.4），不安装历史 Appium 依赖。
   - `bash tools/agent.sh checks`：运行基于 `node:test` 的静态检查与 Gestures 回归测试。
   - `bash tools/agent.sh smoke`：组件级（非 iOS E2E）Gestures 调用链联通性验证（stubbed driver/element）。
   - `bash tools/agent.sh start`：本任务无常驻应用，命令以“Not applicable”说明并以退出码 3 结束。
 - iOS E2E 现实约束：该仓库原有 WDIO/Appium iOS 测试需要 macOS/Xcode、指定模拟器和被测 App。云端与 CI 环境不具备，均明确标注“未执行 / 不适用”，不冒充通过。
-- Bug 修复：`commons/Gestures.js` 中 `checkIfDisplayedWithScrollDown` 纠正了滚动预算越界与成功后误报错问题；回归测试覆盖：
+- Bug 修复：`commons/Gestures.js` 中 `checkIfDisplayedWithScrollDown` 纠正了“超预算多滚”的问题；回归测试覆盖：
   - 已可见；零次预算；
   - 最后允许的一次滚动后找到；
   - 始终找不到且滚动次数不超过预算；

@@ -1,26 +1,19 @@
 #!/usr/bin/env bash
-# 在下面四个函数中填入你的项目命令；入口未配置时应保持失败。
 # 本文件由 tools/agent.sh 加载，继承 set -euo pipefail。
 # 在一个函数中分行放置多个命令，前一步失败就停止。
 # 固定工具链/包管理器版本，使用项目锁文件，不用安装过程的临时 export 连接阶段。
 
-agent_not_configured() {
-  printf 'NOT CONFIGURED: implement %s in tools/agent-commands.sh\n' "$1" >&2
-  return 2
-}
-
 agent_setup() {
   # 指定工具链可用性、锁定依赖安装、代码生成；需可重复执行。
-  echo '[setup] Verifying Node.js toolchain (requires Node >=20, CI pins 20.x)...'
+  echo '[setup] Verifying Node.js toolchain (requires Node 22.23.4 exactly for CI parity)...'
   if ! command -v node >/dev/null 2>&1; then
     echo '[setup] ERROR: Node.js is not installed or not on PATH.' >&2
     return 1
   fi
-  node -v
-  # 允许本地更高版本，但最低要求为 20
-  NODE_MAJOR="$(node -p 'process.versions.node.split(\".\")[0]')"
-  if [ "${NODE_MAJOR}" -lt 20 ]; then
-    echo '[setup] ERROR: Node <20 detected. Please use Node 20 LTS.' >&2
+  NODE_VERSION="$(node -v)"
+  echo "[setup] Detected ${NODE_VERSION}"
+  if [ "${NODE_VERSION}" != "v22.23.4" ]; then
+    echo "[setup] ERROR: Node must be v22.23.4 for this workflow. Detected ${NODE_VERSION}." >&2
     return 1
   fi
   echo '[setup] Nothing to install for this task (no Appium/iOS env required).'
@@ -44,7 +37,7 @@ agent_checks() {
   echo '[checks] Node test: regression tests'
   # 运行 node:test（需要 Node >=20）
   if [ -d tests ]; then
-    node --test tests
+    node --test tests/**/*.test.js
   else
     echo '[checks] No tests directory found' >&2
     return 1
